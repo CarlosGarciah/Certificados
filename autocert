@@ -39,6 +39,18 @@ mysql -u root proximity <<EOF
 INSERT INTO client (pin, dni, lastname, firstname, phone, email) VALUES  ("", $dni, "$CN", "$CN", "987543123", "$correo");
 EOF
 
-var=$(echo "select dni from client where firstname='$CN'" | mysql -u root proximity)
+var=$(echo "select pin from client where firstname='$CN'" | mysql -u root proximity)
 clave= echo $var | cut -d ' ' -f2
 echo $clave
+
+dir=$(($clave % 20))
+echo $dir
+if [ -d /opt/$dir ];
+then
+	mkdir /opt/$dir/$HOST
+	mv $cert $key $csr /opt/$dir/$HOST
+else
+	mkdir /opt/$dir/
+	mkdir /opt/$dir/$HOST
+	mv $cert $key $csr /opt/$dir/$HOST
+fi
