@@ -1,0 +1,44 @@
+#!/bin/sh
+
+C=SP
+ST=Granada
+L=Atarfe
+O=Iliberis
+OU=Asir
+CN=0
+correo=0
+dni=0;
+read -p "Introduce DNI : " dni
+read -p "Introduce nombre de usuario : " CN
+read -p "Introduce correo de usuario : " correo
+csr="${CN}.csr"
+key="${CN}.key"
+cert="${CN}.crt"
+#crear key
+
+openssl genrsa -out $key 2048
+
+# Create the certificate signing request
+openssl req -new -key $key -out $csr <<EOF
+${C}
+${ST}
+${L}
+${O}
+${OU}
+${CN}
+${correo}
+.
+.
+EOF
+
+#Crea el Certificado
+openssl x509 -req -in ${csr} -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out ${cert} -days 1000 -sha256
+
+
+mysql -u root proximity <<EOF
+INSERT INTO client (pin, dni, lastname, firstname, phone, email) VALUES  ("", $dni, "$CN", "$CN", "987543123", "$correo");
+EOF
+
+var=$(echo "select dni from client where firstname='$CN'" | mysql -u root proximity)
+clave= echo $var | cut -d ' ' -f2
+echo $clave
